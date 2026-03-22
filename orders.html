@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>My Orders</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+margin:0;
+text-align:center;
+}
+
+.box{
+background:white;
+width:90%;
+max-width:500px;
+margin:50px auto;
+padding:25px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+.order{
+background:#fafafa;
+padding:15px;
+margin-top:15px;
+border-radius:8px;
+border:1px solid #ddd;
+text-align:left;
+}
+
+.track{
+font-size:14px;
+margin-top:4px;
+}
+
+.progress{
+margin-top:10px;
+height:8px;
+background:#ddd;
+border-radius:5px;
+overflow:hidden;
+}
+
+.bar{
+height:100%;
+background:#4CAF50;
+width:25%;
+}
+
+button{
+padding:8px 15px;
+border:none;
+background:#4CAF50;
+color:white;
+border-radius:5px;
+cursor:pointer;
+margin-top:8px;
+}
+
+button:hover{
+background:#45a049;
+}
+
+.cancel{
+background:red;
+}
+
+.clear{
+background:#ff5722;
+margin-top:10px;
+}
+
+.empty{
+color:gray;
+margin-top:20px;
+}
+
+.status{
+margin-top:6px;
+font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>My Orders 📦</h2>
+
+<div id="orderList"></div>
+
+<br>
+
+<button onclick="createOrder()">Place Order</button>
+
+<button class="clear" onclick="clearOrders()">Clear All Orders</button>
+
+</div>
+
+<script>
+
+let orders = JSON.parse(localStorage.getItem("orders")) || []
+
+function save(){
+localStorage.setItem("orders",JSON.stringify(orders))
+}
+
+function showOrders(){
+
+let list=document.getElementById("orderList")
+list.innerHTML=""
+
+if(orders.length==0){
+list.innerHTML="<p class='empty'>No orders yet</p>"
+return
+}
+
+orders.forEach(function(order,index){
+
+let progressWidth="25%"
+
+if(order.status=="Cancelled") progressWidth="0%"
+else if(order.status=="Delivered") progressWidth="100%"
+else if(order.status=="Out for Delivery") progressWidth="75%"
+else if(order.status=="Shipped") progressWidth="50%"
+
+list.innerHTML += `
+
+<div class="order">
+
+<p><b>Order ID:</b> #${order.id}</p>
+<p><b>Product:</b> ${order.product}</p>
+<p><b>Quantity:</b> ${order.qty}</p>
+<p><b>Price:</b> ₹${order.price}</p>
+<p><b>Order Time:</b> ${order.time}</p>
+
+<p class="status">Status: ${order.status}</p>
+
+<div class="track">📦 Packed: ${order.packed}</div>
+<div class="track">🚚 Shipped: ${order.shipped}</div>
+<div class="track">🏠 Out for Delivery: ${order.out}</div>
+<div class="track">✅ Delivered: ${order.delivered}</div>
+
+<div class="progress">
+<div class="bar" style="width:${progressWidth}"></div>
+</div>
+
+<button onclick="trackOrder('${order.id}')">Track</button>
+
+<button class="cancel" onclick="cancelOrder(${index})">Cancel</button>
+
+</div>
+
+`
+
+})
+
+}
+
+function createOrder(){
+
+let now=new Date().toLocaleString()
+
+let order={
+
+id:"ORD"+Date.now(),
+product:"Smart Watch",
+qty:1,
+price:999,
+time:now,
+
+packed:now,
+shipped:"Waiting",
+out:"Waiting",
+delivered:"Waiting",
+status:"Processing"
+
+}
+
+orders.push(order)
+save()
+showOrders()
+
+let index=orders.length-1
+
+setTimeout(function(){
+
+if(orders[index].status=="Cancelled") return
+
+orders[index].shipped=new Date().toLocaleString()
+orders[index].status="Shipped"
+
+save()
+showOrders()
+
+},5000)
+
+
+setTimeout(function(){
+
+if(orders[index].status=="Cancelled") return
+
+orders[index].out=new Date().toLocaleString()
+orders[index].status="Out for Delivery"
+
+save()
+showOrders()
+
+},10000)
+
+
+setTimeout(function(){
+
+if(orders[index].status=="Cancelled") return
+
+orders[index].delivered=new Date().toLocaleString()
+orders[index].status="Delivered"
+
+save()
+showOrders()
+
+},15000)
+
+}
+
+function cancelOrder(i){
+
+if(confirm("Cancel this order?")){
+
+orders[i].status="Cancelled"
+orders[i].packed="Cancelled"
+orders[i].shipped="Cancelled"
+orders[i].out="Cancelled"
+orders[i].delivered="Cancelled"
+
+save()
+showOrders()
+
+}
+
+}
+
+function trackOrder(id){
+
+alert(
+"Tracking Order ID: "+id+
+"\n\nPacked → Shipped → Out for Delivery → Delivered"
+)
+
+}
+
+function clearOrders(){
+
+if(confirm("Delete all orders?")){
+
+orders=[]
+localStorage.removeItem("orders")
+
+showOrders()
+
+}
+
+}
+
+showOrders()
+
+</script>
+
+</body>
+</html>

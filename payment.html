@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>UPI Payment</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#f2f2f2;
+margin:0;
+}
+
+.box{
+background:white;
+width:380px;
+margin:60px auto;
+padding:25px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.2);
+}
+
+img{
+width:260px;
+margin:15px 0;
+border-radius:10px;
+}
+
+.qtybox{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+}
+
+.qtybox button{
+width:35px;
+height:35px;
+font-size:18px;
+background:#eee;
+}
+
+input{
+padding:8px;
+width:150px;
+text-align:center;
+font-size:16px;
+margin-top:5px;
+}
+
+button{
+padding:10px 16px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:16px;
+margin:5px;
+}
+
+.phonepe{background:#5f259f;color:white;}
+.paytm{background:#00baf2;color:white;}
+.gpay{background:#34a853;color:white;}
+.done{background:green;color:white;margin-top:10px;}
+.verify{background:#ff9800;color:white;}
+
+.upi{font-weight:bold;font-size:16px;color:#444;}
+.orderid{margin-top:15px;font-weight:bold;color:#333;}
+.timer{font-size:18px;color:red;margin-top:10px;}
+.error{color:red;font-weight:bold;margin-top:10px;}
+
+.address{
+background:#f7f7f7;
+padding:10px;
+border-radius:6px;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>💳 UPI Payment</h2>
+
+<p>Price per item: ₹<span id="price">0</span></p>
+
+<p>Quantity</p>
+
+<div class="qtybox">
+
+<button onclick="minus()">-</button>
+
+<input type="number" id="qty" value="1" min="1" max="10">
+
+<button onclick="plus()">+</button>
+
+</div>
+
+<p>Total Amount: ₹<span id="total">0</span></p>
+
+<div class="address" id="addressBox"></div>
+
+<p class="upi">UPI ID: myshop290@slc</p>
+
+<p>Scan QR or Pay Using App</p>
+
+<img id="qr">
+
+<div>
+
+<button class="phonepe" onclick="openUPI()">PhonePe</button>
+<button class="paytm" onclick="openUPI()">Paytm</button>
+<button class="gpay" onclick="openUPI()">Google Pay</button>
+
+</div>
+
+<br>
+
+<p>Enter UPI Transaction ID (UTR)</p>
+
+<input type="text" id="utr" placeholder="Enter 12 digit UTR">
+
+<br>
+
+<button class="verify" onclick="verifyPayment()">Verify Payment</button>
+
+<p class="timer">Time Left: <span id="time">120</span> sec</p>
+
+<button class="done" onclick="placeOrder()">Payment Done</button>
+
+<p class="orderid" id="orderId"></p>
+
+<p class="error" id="error"></p>
+
+</div>
+
+<script>
+
+/* get price */
+
+let price = Number(
+localStorage.getItem("buyPrice") ||
+localStorage.getItem("cartPrice") ||
+100
+);
+
+document.getElementById("price").innerText = price;
+
+/* quantity buttons */
+
+function plus(){
+
+let qty=document.getElementById("qty");
+
+if(qty.value<10){
+
+qty.value++;
+
+updateTotal();
+
+}
+
+}
+
+function minus(){
+
+let qty=document.getElementById("qty");
+
+if(qty.value>1){
+
+qty.value--;
+
+updateTotal();
+
+}
+
+}
+
+document.getElementById("qty").addEventListener("input",updateTotal);
+
+/* update total */
+
+function updateTotal(){
+
+let qty = Number(document.getElementById("qty").value);
+
+if(qty<1){
+
+qty=1;
+
+document.getElementById("qty").value=1;
+
+}
+
+let total = qty * price;
+
+document.getElementById("total").innerText = total;
+
+generateQR(total);
+
+}
+
+/* generate qr */
+
+function generateQR(total){
+
+let upiLink =
+"upi://pay?pa=myshop290@slc&pn=MyShop&am="+total+"&cu=INR";
+
+document.getElementById("qr").src =
+"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="+encodeURIComponent(upiLink);
+
+}
+
+/* show address */
+
+let address = JSON.parse(localStorage.getItem("userAddress"));
+
+if(address){
+
+document.getElementById("addressBox").innerHTML =
+"📦 Deliver To:<br>"+
+address.name+"<br>"+
+address.phone+"<br>"+
+address.address+", "+
+address.city+" - "+
+address.pincode;
+
+}
+
+/* open upi */
+
+function openUPI(){
+
+let total = document.getElementById("total").innerText;
+
+let upi =
+"upi://pay?pa=myshop290@slc&pn=MyShop&am="+total+"&cu=INR";
+
+window.location.href = upi;
+
+}
+
+/* verify utr */
+
+function verifyPayment(){
+
+let utr=document.getElementById("utr").value;
+
+if(utr.length<12){
+
+alert("❌ Invalid UTR Number");
+
+return;
+
+}
+
+localStorage.setItem("paymentUTR",utr);
+
+alert("✅ Payment Submitted for Verification");
+
+}
+
+/* timer */
+
+let time=120;
+
+let timer=setInterval(function(){
+
+time--;
+
+document.getElementById("time").innerText=time;
+
+if(time<=0){
+
+clearInterval(timer);
+
+alert("Payment Session Expired");
+
+window.location="index.html";
+
+}
+
+},1000);
+
+/* order id */
+
+function generateOrderID(){
+
+return "ORD"+Date.now();
+
+}
+
+/* place order */
+
+function placeOrder(){
+
+let qty = Number(document.getElementById("qty").value);
+let total = Number(document.getElementById("total").innerText);
+
+if(total===0){
+
+alert("No product selected");
+
+return;
+
+}
+
+let orders =
+JSON.parse(localStorage.getItem("orders"))||[];
+
+let orderId = generateOrderID();
+
+let delivery = new Date();
+delivery.setDate(delivery.getDate()+5);
+
+let product = localStorage.getItem("productName") || "Product";
+
+let order={
+
+id:orderId,
+product:product,
+quantity:qty,
+price:total,
+utr:localStorage.getItem("paymentUTR"),
+status:0,
+date:new Date().toLocaleString(),
+packed:"Pending",
+shipped:"Pending",
+outdelivery:"Pending",
+delivered:"Pending"
+
+};
+
+orders.push(order);
+
+localStorage.setItem("orders",JSON.stringify(orders));
+localStorage.setItem("order_"+orderId,JSON.stringify(order));
+
+document.getElementById("orderId").innerHTML=
+"✅ Order Submitted <br> Order ID: <b>"+orderId+"</b>";
+
+alert("Order Submitted for Payment Verification");
+
+setTimeout(function(){
+
+window.location="orders.html";
+
+},2000);
+
+}
+
+/* start */
+
+updateTotal();
+
+</script>
+
+</body>
+</html>
