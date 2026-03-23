@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Admin Product Panel</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+margin:0;
+}
+
+.box{
+background:white;
+width:450px;
+margin:60px auto;
+padding:25px;
+border-radius:10px;
+box-shadow:0 0 10px gray;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px 0;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+button{
+background:green;
+color:white;
+border:none;
+padding:10px 15px;
+cursor:pointer;
+border-radius:5px;
+margin:3px;
+}
+
+.delete{
+background:red;
+}
+
+.edit{
+background:orange;
+}
+
+.product{
+border-bottom:1px solid #ddd;
+padding:10px;
+text-align:left;
+}
+
+img{
+width:70px;
+vertical-align:middle;
+margin-right:10px;
+border-radius:6px;
+}
+
+.stock{
+font-size:13px;
+color:#666;
+}
+
+.preview{
+width:90px;
+margin:10px;
+border-radius:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<script>
+/* Admin login protection */
+
+if(localStorage.getItem("admin")!="true"){
+window.location="login.html";
+}
+</script>
+
+<div class="box">
+
+<h2>⚙️ Admin Product Manager</h2>
+
+<input type="text" id="name" placeholder="Product Name">
+
+<input type="number" id="price" placeholder="Price">
+
+<input type="number" id="stock" placeholder="Stock">
+
+<input type="file" id="image" onchange="previewImage()">
+
+<br>
+
+<img id="preview" class="preview" style="display:none;">
+
+<br>
+
+<button onclick="addProduct()">Add Product</button>
+<button onclick="updateProduct()">Update Product</button>
+
+<h3>📦 Product List</h3>
+
+<div id="products"></div>
+
+</div>
+
+<script>
+
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+let editIndex = -1;
+
+showProducts();
+
+
+function showProducts(){
+
+let html="";
+
+products.forEach(function(p,i){
+
+html+=`
+<div class="product">
+
+<img src="${p.image}">
+
+<b>${p.name}</b> - ₹${p.price}
+
+<p class="stock">Stock: ${p.stock}</p>
+
+<button class="edit" onclick="editProduct(${i})">Edit</button>
+
+<button class="delete" onclick="deleteProduct(${i})">Delete</button>
+
+</div>
+`;
+
+});
+
+document.getElementById("products").innerHTML=html;
+
+}
+
+
+/* Image Preview */
+
+function previewImage(){
+
+let file=document.getElementById("image").files[0];
+
+if(file){
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+document.getElementById("preview").src=reader.result;
+document.getElementById("preview").style.display="block";
+
+}
+
+reader.readAsDataURL(file);
+
+}
+
+}
+
+
+/* Add Product */
+
+function addProduct(){
+
+let name=document.getElementById("name").value;
+let price=document.getElementById("price").value;
+let stock=document.getElementById("stock").value;
+let file=document.getElementById("image").files[0];
+
+if(name=="" || price=="" || stock=="" || !file){
+alert("Fill all fields");
+return;
+}
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+let product={
+name:name,
+price:price,
+stock:parseInt(stock),
+image:reader.result
+};
+
+products.push(product);
+
+localStorage.setItem("products",JSON.stringify(products));
+
+alert("Product Added");
+
+clearForm();
+
+showProducts();
+
+}
+
+reader.readAsDataURL(file);
+
+}
+
+
+/* Edit Product */
+
+function editProduct(i){
+
+let p=products[i];
+
+document.getElementById("name").value=p.name;
+document.getElementById("price").value=p.price;
+document.getElementById("stock").value=p.stock;
+
+editIndex=i;
+
+}
+
+
+/* Update Product */
+
+function updateProduct(){
+
+if(editIndex==-1){
+alert("Select product to edit");
+return;
+}
+
+let name=document.getElementById("name").value;
+let price=document.getElementById("price").value;
+let stock=document.getElementById("stock").value;
+let file=document.getElementById("image").files[0];
+
+if(file){
+
+let reader=new FileReader();
+
+reader.onload=function(){
+
+products[editIndex]={
+name:name,
+price:price,
+stock:parseInt(stock),
+image:reader.result
+};
+
+saveUpdate();
+
+}
+
+reader.readAsDataURL(file);
+
+}
+else{
+
+products[editIndex].name=name;
+products[editIndex].price=price;
+products[editIndex].stock=parseInt(stock);
+
+saveUpdate();
+
+}
+
+}
+
+
+function saveUpdate(){
+
+localStorage.setItem("products",JSON.stringify(products));
+
+alert("Product Updated");
+
+editIndex=-1;
+
+clearForm();
+
+showProducts();
+
+}
+
+
+/* Delete Product */
+
+function deleteProduct(i){
+
+if(confirm("Delete this product?")){
+
+products.splice(i,1);
+
+localStorage.setItem("products",JSON.stringify(products));
+
+showProducts();
+
+}
+
+}
+
+
+/* Clear Form */
+
+function clearForm(){
+
+document.getElementById("name").value="";
+document.getElementById("price").value="";
+document.getElementById("stock").value="";
+document.getElementById("image").value="";
+document.getElementById("preview").style.display="none";
+
+}
+
+</script>
+
+</body>
+
+</html>
