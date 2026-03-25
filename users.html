@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>User List</title>
+</head>
+
+<body style="font-family:Arial">
+
+<h2>Registered Users</h2>
+
+<div id="userList"></div>
+
+<script>
+
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
+let html = "";
+
+users.forEach(function(u){
+
+html += "<p>"+u.name+" - "+u.phone+"</p>";
+
+});
+
+document.getElementById("userList").innerHTML = html;
+
+</script>
+
+</body>
+</html>

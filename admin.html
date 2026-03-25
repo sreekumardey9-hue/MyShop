@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>MyShop Admin Panel</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+margin:0;
+text-align:center;
+}
+
+.top{
+background:#000;
+color:white;
+padding:15px;
+font-size:20px;
+}
+
+.box{
+background:white;
+width:90%;
+max-width:600px;
+margin:30px auto;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px gray;
+text-align:left;
+}
+
+button{
+padding:8px 12px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-top:5px;
+}
+
+.green{background:#4CAF50;color:white;}
+.blue{background:#2196F3;color:white;}
+.red{background:#f44336;color:white;}
+.orange{background:#ff9800;color:white;}
+
+.order{
+background:#fafafa;
+padding:12px;
+margin-top:10px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+select{
+width:100%;
+padding:8px;
+margin-top:8px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="top">⚙️ MyShop Admin Panel</div>
+
+<div class="box">
+
+<h3>📦 All Orders</h3>
+
+<div id="list"></div>
+
+</div>
+
+<script>
+
+// 🔐 LOGIN CHECK
+if(localStorage.getItem("admin") !== "true"){
+window.location.href="admin-login.html";
+}
+
+// GET ORDERS
+function getOrders(){
+return JSON.parse(localStorage.getItem("orders")) || [];
+}
+
+// SAVE
+function saveOrders(data){
+localStorage.setItem("orders", JSON.stringify(data));
+}
+
+// SHOW ALL ORDERS WITH BUTTONS
+function showOrders(){
+
+let orders = getOrders();
+let list = document.getElementById("list");
+
+list.innerHTML="";
+
+if(orders.length === 0){
+list.innerHTML = "No Orders Found";
+return;
+}
+
+orders.forEach((o,index)=>{
+
+list.innerHTML += `
+<div class="order">
+
+<p><b>ID:</b> ${o.id}</p>
+<p><b>Product:</b> ${o.product || o.name}</p>
+<p><b>Price:</b> ₹${o.price}</p>
+<p><b>Status:</b> ${o.status}</p>
+
+<select id="status-${index}">
+<option ${o.status=="Processing"?"selected":""}>Processing</option>
+<option ${o.status=="Shipped"?"selected":""}>Shipped</option>
+<option ${o.status=="Out for Delivery"?"selected":""}>Out for Delivery</option>
+<option ${o.status=="Delivered"?"selected":""}>Delivered</option>
+<option ${o.status=="Cancelled"?"selected":""}>Cancelled</option>
+</select>
+
+<br>
+
+<button class="green" onclick="updateOrder(${index})">Update</button>
+<button class="blue" onclick="approvePayment(${index})">Payment</button>
+<button class="orange" onclick="cancelOrder(${index})">Cancel</button>
+<button class="red" onclick="deleteOrder(${index})">Delete</button>
+
+</div>
+`;
+
+});
+
+}
+
+// ✅ UPDATE STATUS
+function updateOrder(index){
+
+let orders = getOrders();
+let newStatus = document.getElementById("status-"+index).value;
+
+orders[index].status = newStatus;
+
+saveOrders(orders);
+
+alert("Status Updated ✅");
+showOrders();
+
+}
+
+// 💰 PAYMENT APPROVE
+function approvePayment(index){
+
+let orders = getOrders();
+
+orders[index].payment = "Approved";
+orders[index].status = "Processing";
+
+saveOrders(orders);
+
+alert("Payment Approved 💰");
+showOrders();
+
+}
+
+// ❌ CANCEL ORDER
+function cancelOrder(index){
+
+let orders = getOrders();
+
+orders[index].status = "Cancelled";
+
+saveOrders(orders);
+
+alert("Order Cancelled ❌");
+showOrders();
+
+}
+
+// 🗑 DELETE ORDER
+function deleteOrder(index){
+
+let orders = getOrders();
+
+orders.splice(index,1);
+
+saveOrders(orders);
+
+alert("Order Deleted 🗑");
+showOrders();
+
+}
+
+// AUTO REFRESH
+setInterval(showOrders,3000);
+
+// INIT
+showOrders();
+
+</script>
+
+</body>
+</html>

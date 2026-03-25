@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Set Delivery Address</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+margin:0;
+}
+
+/* BOX */
+
+.box{
+width:350px;
+margin:60px auto;
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.2);
+}
+
+/* INPUT */
+
+input,textarea{
+width:90%;
+padding:10px;
+margin:8px;
+border:1px solid #ccc;
+border-radius:5px;
+font-size:15px;
+}
+
+/* BUTTON */
+
+button{
+background:green;
+color:white;
+border:none;
+padding:12px;
+cursor:pointer;
+width:95%;
+border-radius:6px;
+font-size:16px;
+}
+
+button:hover{
+background:#0a8f0a;
+}
+
+/* BACK */
+
+.back{
+background:#555;
+margin-bottom:10px;
+}
+
+/* SAVED BOX */
+
+.saved{
+background:#e8f5e9;
+padding:10px;
+border-radius:6px;
+margin-bottom:10px;
+font-size:14px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<button class="back" onclick="goBack()">⬅ Back</button>
+
+<h2>🏠 Delivery Address</h2>
+
+<div id="savedBox"></div>
+
+<input type="text" id="name" placeholder="Full Name">
+<input type="tel" id="phone" placeholder="Phone Number">
+<textarea id="address" placeholder="Full Address"></textarea>
+<input type="text" id="city" placeholder="City">
+<input type="number" id="pincode" placeholder="Pincode">
+
+<br><br>
+
+<button onclick="saveAddress()">Save Address</button>
+
+</div>
+
+<script>
+
+/* LOAD */
+
+let saved = JSON.parse(localStorage.getItem("userAddress"));
+
+if(saved){
+
+document.getElementById("name").value = saved.name || "";
+document.getElementById("phone").value = saved.phone || "";
+document.getElementById("address").value = saved.address || "";
+document.getElementById("city").value = saved.city || "";
+document.getElementById("pincode").value = saved.pincode || "";
+
+/* SHOW PREVIEW */
+
+document.getElementById("savedBox").innerHTML = `
+<div class="saved">
+<b>Saved Address:</b><br>
+${saved.name}, ${saved.phone}<br>
+${saved.address}, ${saved.city} - ${saved.pincode}
+</div>
+`;
+
+}
+
+/* SAVE */
+
+function saveAddress(){
+
+let name=document.getElementById("name").value.trim();
+let phone=document.getElementById("phone").value.trim();
+let address=document.getElementById("address").value.trim();
+let city=document.getElementById("city").value.trim();
+let pincode=document.getElementById("pincode").value.trim();
+
+/* VALIDATION */
+
+if(name=="" || phone=="" || address=="" || city=="" || pincode==""){
+alert("⚠️ Please fill all fields");
+return;
+}
+
+if(phone.length!=10 || isNaN(phone)){
+alert("Enter valid 10 digit phone number");
+return;
+}
+
+if(pincode.length!=6 || isNaN(pincode)){
+alert("Enter valid 6 digit pincode");
+return;
+}
+
+/* SAVE */
+
+let userAddress={
+name:name,
+phone:phone,
+address:address,
+city:city,
+pincode:pincode
+};
+
+localStorage.setItem("userAddress",JSON.stringify(userAddress));
+
+alert("✅ Address Saved Successfully!");
+
+window.location.href="payment.html";
+
+}
+
+/* BACK */
+
+function goBack(){
+window.location.href="cart.html";
+}
+
+</script>
+
+</body>
+
+</html>

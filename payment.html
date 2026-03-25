@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>MyShop Payment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+background:#f2f2f2;
+margin:0;
+padding:20px 0;
+}
+
+.box{
+background:white;
+width:380px;
+max-width:90%;
+margin:40px auto;
+padding:25px;
+border-radius:12px;
+box-shadow:0 0 15px rgba(0,0,0,0.2);
+}
+
+img{
+width:260px;
+margin:15px 0;
+border-radius:10px;
+}
+
+.qtybox{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+}
+
+.qtybox button{
+width:35px;
+height:35px;
+font-size:18px;
+background:#eee;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+input{
+padding:8px;
+width:180px;
+text-align:center;
+font-size:16px;
+margin-top:5px;
+border:1px solid #ddd;
+border-radius:5px;
+}
+
+button{
+padding:10px 16px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:16px;
+margin:5px;
+}
+
+.phonepe{background:#5f259f;color:white;}
+.paytm{background:#00baf2;color:white;}
+.gpay{background:#34a853;color:white;}
+.razor{background:#0f9d58;color:white;}
+.done{background:#28a745;color:white;margin-top:10px;}
+.verify{background:#ff9800;color:white;}
+
+.timer{
+font-size:18px;
+color:red;
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>💳 MyShop Payment</h2>
+
+<p>Price per item: ₹<span id="price">100</span></p>
+
+<p>Quantity</p>
+
+<div class="qtybox">
+<button onclick="minus()">-</button>
+<input type="number" id="qty" value="1" min="1" max="10">
+<button onclick="plus()">+</button>
+</div>
+
+<p>Total Amount: ₹<span id="total">100</span></p>
+
+<p>UPI ID: <strong>myshop290@slc</strong></p>
+
+<p>Scan QR or Pay Using App</p>
+
+<img id="qr">
+
+<div>
+<button class="phonepe" onclick="openUPIApp()">PhonePe</button>
+<button class="paytm" onclick="openUPIApp()">Paytm</button>
+<button class="gpay" onclick="openUPIApp()">Google Pay</button>
+</div>
+
+<br>
+
+<button class="razor" onclick="razorpayPay()">Pay with Razorpay</button>
+
+<br><br>
+
+<p>Enter UPI Transaction ID (UTR)</p>
+
+<input type="text" id="utr" placeholder="Enter 12-digit UTR">
+
+<br>
+
+<button class="verify" onclick="verifyPayment()">Verify Payment</button>
+
+<p class="timer">Time Left: <span id="time">600</span> sec</p>
+
+<button class="done" onclick="placeOrder()">Payment Done</button>
+
+<p id="orderId"></p>
+
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+// 🔥 GET DATA FROM PREVIOUS PAGES
+let product = JSON.parse(localStorage.getItem("buyProduct")) || {};
+let user = JSON.parse(localStorage.getItem("userAddress")) || {};
+
+let price = product.price || 100;
+document.getElementById("price").innerText = price;
+
+let paymentSuccess = false;
+
+// ➕➖
+function plus(){
+let q = Number(qty.value);
+if(q<10){ qty.value=q+1; updateTotal(); }
+}
+
+function minus(){
+let q = Number(qty.value);
+if(q>1){ qty.value=q-1; updateTotal(); }
+}
+
+qty.addEventListener("input",()=>{
+if(qty.value<1) qty.value=1;
+if(qty.value>10) qty.value=10;
+updateTotal();
+});
+
+// TOTAL
+function updateTotal(){
+let total = qty.value * price;
+document.getElementById("total").innerText = total;
+generateQR(total);
+}
+
+// QR
+function generateQR(total){
+let link = `upi://pay?pa=myshop290@slc&pn=MyShop&am=${total}&cu=INR`;
+qr.src = "https://quickchart.io/qr?size=300&text="+encodeURIComponent(link);
+}
+
+// UPI OPEN
+function openUPIApp(){
+let total = Number(document.getElementById("total").innerText);
+let link = `upi://pay?pa=myshop290@slc&pn=MyShop&am=${total}&cu=INR`;
+window.location.href = link;
+}
+
+// RAZORPAY
+function razorpayPay(){
+
+let amount = Number(document.getElementById("total").innerText) * 100;
+
+let options = {
+"key": "rzp_test_1234567890",
+"amount": amount,
+"currency": "INR",
+"name": "MyShop",
+
+"handler": function (){
+paymentSuccess = true;
+alert("Payment Successful ✅");
+},
+
+"modal": {
+"ondismiss": function(){
+paymentSuccess = false;
+}
+}
+};
+
+let rzp = new Razorpay(options);
+rzp.open();
+}
+
+// VERIFY
+function verifyPayment(){
+let utr = document.getElementById("utr").value.trim();
+
+if(!/^[0-9]{12}$/.test(utr)){
+alert("Invalid UTR ❌");
+return;
+}
+
+paymentSuccess = true;
+alert("Payment Verified ✅");
+}
+
+// TIMER
+let time=600;
+
+setInterval(()=>{
+time--;
+document.getElementById("time").innerText=time;
+
+if(time<=0){
+alert("Session Expired");
+window.location.href="index.html";
+}
+},1000);
+
+// ✅ FINAL ORDER SAVE
+function placeOrder(){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+let newOrder = {
+id: "ORD"+Date.now(),
+name: product.name,
+price: price,
+qty: qty.value,
+customer: user.name,
+address: user.address,
+status: paymentSuccess ? "Success" : "Failed",
+date: new Date().toLocaleString()
+};
+
+orders.push(newOrder);
+localStorage.setItem("orders", JSON.stringify(orders));
+
+// redirect
+window.location.href="orders.html";
+}
+
+// INIT
+updateTotal();
+
+</script>
+
+</body>
+</html>

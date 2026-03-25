@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Admin Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+margin:0;
+}
+
+.login-box{
+background:white;
+width:350px;
+margin:120px auto;
+padding:25px;
+border-radius:10px;
+box-shadow:0 0 10px gray;
+}
+
+input{
+width:90%;
+padding:10px;
+margin:10px 0;
+border:1px solid #ccc;
+border-radius:6px;
+font-size:15px;
+}
+
+button{
+background:#000;
+color:white;
+border:none;
+padding:12px;
+cursor:pointer;
+border-radius:6px;
+width:95%;
+font-size:16px;
+}
+
+button:hover{
+background:#333;
+}
+
+#msg{
+color:red;
+font-weight:bold;
+}
+
+.show{
+cursor:pointer;
+font-size:13px;
+color:blue;
+margin-bottom:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<h2>🔐 Admin Login</h2>
+
+<input type="text" id="user" placeholder="Username">
+
+<input type="password" id="pass" placeholder="Password">
+
+<p class="show" onclick="togglePass()">Show / Hide Password</p>
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
+</div>
+
+<script>
+
+// 🔥 FORCE RESET (VERY IMPORTANT)
+localStorage.removeItem("admin");
+
+// AUTO LOGIN CHECK
+if(localStorage.getItem("admin")==="true"){
+window.location.href="admin.html";
+}
+
+function login(){
+
+let user=document.getElementById("user").value.trim().toLowerCase();
+let pass=document.getElementById("pass").value.trim();
+let msg=document.getElementById("msg");
+
+msg.innerHTML="";
+
+// empty check
+if(user==="" || pass===""){
+msg.innerHTML="⚠ Please enter username and password";
+return;
+}
+
+// ✅ LOGIN CHECK
+if(user==="admin" && pass==="1234"){
+
+localStorage.setItem("admin","true");
+
+msg.style.color="green";
+msg.innerHTML="Login Success ✅";
+
+setTimeout(()=>{
+window.location.href="admin.html";
+},500);
+
+}else{
+
+msg.style.color="red";
+msg.innerHTML="❌ Wrong Username or Password";
+
+}
+
+}
+
+// 👁 SHOW PASSWORD
+function togglePass(){
+let p=document.getElementById("pass");
+p.type = (p.type==="password") ? "text" : "password";
+}
+
+// 🔥 ENTER KEY FIX
+document.addEventListener("keydown",function(e){
+if(e.key==="Enter"){
+login();
+}
+});
+
+</script>
+
+</body>
+
+</html>

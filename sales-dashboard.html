@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Sales Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+margin:0;
+text-align:center;
+}
+
+.header{
+background:#111;
+color:white;
+padding:15px;
+font-size:22px;
+}
+
+.container{
+width:90%;
+max-width:800px;
+margin:40px auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:10px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+display:inline-block;
+width:200px;
+}
+
+.card h2{
+margin:0;
+color:#444;
+}
+
+.card p{
+font-size:22px;
+font-weight:bold;
+}
+
+.table-box{
+background:white;
+padding:20px;
+margin-top:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border-bottom:1px solid #ddd;
+padding:10px;
+}
+
+th{
+background:#eee;
+}
+
+button{
+background:red;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:5px;
+cursor:pointer;
+}
+
+.clearBtn{
+background:black;
+margin-top:15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+📊 MyShop Sales Dashboard
+</div>
+
+<div class="container">
+
+<div class="card">
+<h2>Total Orders</h2>
+<p id="ordersCount">0</p>
+</div>
+
+<div class="card">
+<h2>Total Sales</h2>
+<p>₹<span id="totalSales">0</span></p>
+</div>
+
+<div class="card">
+<h2>Items Sold</h2>
+<p id="itemsSold">0</p>
+</div>
+
+<div class="table-box">
+
+<h3>Recent Orders</h3>
+
+<table>
+
+<tr>
+<th>Order ID</th>
+<th>Items</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+
+<tbody id="ordersTable"></tbody>
+
+</table>
+
+<button class="clearBtn" onclick="clearOrders()">Clear All Orders</button>
+
+</div>
+
+</div>
+
+<script>
+
+function loadDashboard(){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+let totalSales = 0;
+let itemsSold = 0;
+let table = "";
+
+orders.forEach(function(o,index){
+
+totalSales += parseInt(o.price);
+
+let items = o.items.split(",");
+itemsSold += items.length;
+
+table += `
+<tr>
+<td>${o.id}</td>
+<td>${o.items}</td>
+<td>₹${o.price}</td>
+<td><button onclick="deleteOrder(${index})">Delete</button></td>
+</tr>
+`;
+
+});
+
+document.getElementById("ordersCount").innerText = orders.length;
+document.getElementById("totalSales").innerText = totalSales;
+document.getElementById("itemsSold").innerText = itemsSold;
+document.getElementById("ordersTable").innerHTML = table;
+
+}
+
+function deleteOrder(i){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+orders.splice(i,1);
+
+localStorage.setItem("orders",JSON.stringify(orders));
+
+loadDashboard();
+
+}
+
+function clearOrders(){
+
+if(confirm("Delete all orders?")){
+
+localStorage.removeItem("orders");
+
+loadDashboard();
+
+}
+
+}
+
+loadDashboard();
+
+</script>
+
+</body>
+
+</html>
